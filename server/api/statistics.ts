@@ -4,18 +4,20 @@ import { DateTime, Interval } from 'luxon';
 import { z } from 'zod';
 
 export default defineEventHandler(async (event) => {
-  const query = z
-    .object({
-      start: z
-        .string()
-        //.datetime()
-        .default(() => DateTime.now().minus({ hours: 23 }).toISO()),
-      end: z
-        .string()
-        //.datetime()
-        .default(() => DateTime.now().toISO()),
-    })
-    .parse(getQuery(event));
+  const schema = z.object({
+    start: z
+      .string()
+      //.datetime()
+      .default(() =>
+        DateTime.now().minus({ hours: 23 }).startOf('minute').toISO()
+      ),
+    end: z
+      .string()
+      //.datetime()
+      .default(() => DateTime.now().toISO()),
+  });
+
+  const query = await getValidatedQuery(event, schema.parse);
 
   const dataPoints = Object.fromEntries(
     Interval.fromDateTimes(
@@ -23,7 +25,7 @@ export default defineEventHandler(async (event) => {
       DateTime.fromISO(query.end)
     )
       .splitBy({ minutes: 30 })
-      .map((interval) => [interval.start?.toSeconds(), null])
+      .map((interval) => [interval.start?.toMillis(), null])
   );
 
   const [[scrollRows], [dragonsRows]] = await Promise.all([
@@ -56,7 +58,7 @@ export default defineEventHandler(async (event) => {
     scrolls,
     dragons,
   } as {
-    scrolls: Record<number, string>;
-    dragons: Record<number, string>;
+    scrolls: Record<number, number>;
+    dragons: Record<number, number>;
   };
 });

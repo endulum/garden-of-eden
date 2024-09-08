@@ -59,7 +59,6 @@
 
 <script lang="ts" setup>
 import type { ChartData } from 'chart.js';
-import { DateTime } from 'luxon';
 import { Line } from 'vue-chartjs';
 
 useHead({
@@ -68,6 +67,7 @@ useHead({
 
 const dragons = ref<ChartData<'line'>>();
 const scrolls = ref<ChartData<'line'>>();
+
 const statisticsLoaded = ref(false);
 
 const { data: stats, execute: fetchStats } = useAsyncData(() =>
@@ -102,37 +102,35 @@ watch(() => useColorMode().value, renderCharts);
 
 function renderCharts() {
   const statistics = stats.value;
+
   if (statistics === null) return;
-  console.log(Object.keys(statistics.dragons));
-  const labels = Object.keys(statistics.dragons).map((dataPoint) =>
-    DateTime.fromSeconds(parseInt(dataPoint)).toLocaleString(
-      DateTime.DATETIME_SHORT
-    )
-  );
 
   const colours = chartColourPalette(useColorMode().value);
-  console.log(labels);
+
+  console.log(toValue(statistics).dragons);
 
   dragons.value = {
-    labels,
+    labels: Object.keys(statistics.dragons).map((dataPoint) => {
+      return new Date(parseInt(dataPoint)).toLocaleTimeString();
+    }),
+
     datasets: [
       {
         label: 'Dragons',
         backgroundColor: colours[0],
         borderColor: colours[0],
-        data: statistics.dragons.map((stat) => stat.value),
+        data: Object.values(statistics.dragons),
       },
     ],
   };
 
   scrolls.value = {
-    labels,
     datasets: [
       {
         label: 'Scrolls',
         backgroundColor: colours[1],
         borderColor: colours[1],
-        data: statistics.scrolls.map((stat) => stat.value),
+        data: statistics.scrolls,
       },
     ],
   };

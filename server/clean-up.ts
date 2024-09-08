@@ -84,7 +84,9 @@ export async function cleanUp() {
   await con.execute(
     `INSERT INTO recordings (recorded_on, value, record_type, extra) VALUES (?, ?, ?, ?)`,
     [
-      DateTime.fromSeconds(start).startOf('minute').toSQL(),
+      DateTime.fromMillis(start)
+        .startOf('minute')
+        .toSQL({ includeOffset: false }),
       successfullyRemoved,
       'removed',
       JSON.stringify({ duration: end - start }),

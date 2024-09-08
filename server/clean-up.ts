@@ -1,3 +1,4 @@
+import { DateTime } from 'luxon';
 import type { ResultSetHeader, RowDataPacket } from 'mysql2';
 import pool from '~/server/pool';
 import chunkArray from '~/utils/chunkArray';
@@ -81,8 +82,13 @@ export async function cleanUp() {
   const end = new Date().getTime();
 
   await con.execute(
-    `INSERT INTO recordings (value, record_type, extra) VALUES (?, ?, ?)`,
-    [successfullyRemoved, 'removed', JSON.stringify({ duration: end - start })]
+    `INSERT INTO recordings (recorded_on, value, record_type, extra) VALUES (?, ?, ?, ?)`,
+    [
+      DateTime.fromSeconds(start).startOf('minute').toSQL(),
+      successfullyRemoved,
+      'removed',
+      JSON.stringify({ duration: end - start }),
+    ]
   );
 
   con.release();

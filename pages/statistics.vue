@@ -12,6 +12,7 @@
 
     <section v-if="statisticsLoaded" class="space-y-8">
       <figure v-if="dragons" class="graph">
+        <input type="date" />
         <div class="h-[31rem]">
           <Line
             :data="dragons"
@@ -58,6 +59,7 @@
 
 <script lang="ts" setup>
 import type { ChartData } from 'chart.js';
+import { DateTime } from 'luxon';
 import { Line } from 'vue-chartjs';
 
 useHead({
@@ -101,14 +103,15 @@ watch(() => useColorMode().value, renderCharts);
 function renderCharts() {
   const statistics = stats.value;
   if (statistics === null) return;
-
-  const labels = statistics.dragons.map((stat) =>
-    Intl.DateTimeFormat(undefined, {
-      timeStyle: 'short',
-    }).format(new Date(stat.recorded_on))
+  console.log(Object.keys(statistics.dragons));
+  const labels = Object.keys(statistics.dragons).map((dataPoint) =>
+    DateTime.fromSeconds(parseInt(dataPoint)).toLocaleString(
+      DateTime.DATETIME_SHORT
+    )
   );
 
   const colours = chartColourPalette(useColorMode().value);
+  console.log(labels);
 
   dragons.value = {
     labels,
